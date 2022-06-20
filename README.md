@@ -1,11 +1,15 @@
-# Forked from [McNeel python stubs](https://github.com/mcneel/pythonstubs). So kudos to him for doing the heavy lifting. 
+# Build python stubs for .NET assemblies
+
+Forked from [McNeel python stubs](https://github.com/mcneel/pythonstubs). So kudos to him for doing the heavy lifting. 
+
+If any issues arise I might try and fix them. However no promises are made
 
 ## Usage
 ```
 Usage:
-    pystubsbuilder (-h | --help)
-    pystubsbuilder (-V | --version)
-    pystubsbuilder [--dest=<dest_path>] [--search=<search_path>...] [--prefix=<prefix>] [--postfix=<postfix>] [--dest-is-root] <target_dll>...
+    PyStubbler (-h | --help)
+    PyStubbler (-V | --version)
+    PyStubbler [--dest=<dest_path>] [--search=<search_path>...] [--prefix=<prefix>] [--postfix=<postfix>] [--dest-is-root] <target_dll>...
 
 Options:
     -h --help                   Show this help
@@ -23,6 +27,6 @@ Options:
  
 ## Visual Studio postbuild
 
-Place the build with all the files in the solution folder, and add this to the Post-build event command line box in the project properties
+Place the all the files from the release folder in a subfolder called _PyStubbler_ in the solution folder, and add the following line to the Post-build event command line box in the project properties
 
 `"$(SolutionDir)PyStubbler\PyStubbler.exe" --dest="$(TargetDir)" --search="$(TargetDir)" --postfix="-stubs" "$(TargetPath)"`
