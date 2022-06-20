@@ -2,7 +2,7 @@
 
 Forked from [McNeel python stubs](https://github.com/mcneel/pythonstubs). So kudos to him for doing the heavy lifting. 
 
-If any issues arise I might try and fix them. However no promises are made
+
 
 ## Usage
 ```
@@ -30,3 +30,21 @@ Options:
 Place the all the files from the release folder in a subfolder called _PyStubbler_ in the solution folder, and add the following line to the Post-build event command line box in the project properties
 
 `"$(SolutionDir)PyStubbler\PyStubbler.exe" --dest="$(TargetDir)" --search="$(TargetDir)" --postfix="-stubs" "$(TargetPath)"`
+
+## The following changes and improvements have been made:
+- Creation of the `[HideStub]` attribute in _PyStubblerAnnotations.dll_. This attribute hides class members from the stub generator.
+- If the destination folder does not exists, it gets created.
+- Public fields are added as well.
+- Static accessors are marked as such using `@staticmethod`
+- Static fields are listed separately in the stub file.
+- Improved type conversion especially for nested types. (WIP)
+
+## Future improvements (when I need them or get around to it)
+- Refactor the code for better maintainability
+- Write tests
+
+
+
+
+## Known limitations
+- Spaces on paths are tricky to get right when running the tool. 

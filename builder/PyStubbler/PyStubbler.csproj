@@ -65,6 +65,10 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\PyStubblerAnnotations\PyStubblerAnnotations.csproj">
+      <Project>{f4d045ca-ea7f-4256-8c6f-6c1a39805a4a}</Project>
+      <Name>PyStubblerAnnotations</Name>
+    </ProjectReference>
     <ProjectReference Include="..\PyStubblerLib\PyStubblerLib.csproj">
       <Project>{cff04832-fc00-4589-afd1-3e077a94c9b7}</Project>
       <Name>PyStubblerLib</Name>
