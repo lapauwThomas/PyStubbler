@@ -1,33 +1,28 @@
-# McNeel python stubs
+# Forked from [McNeel python stubs](https://github.com/mcneel/pythonstubs). So kudos to him for doing the heavy lifting. 
 
-[![PyPI](https://img.shields.io/pypi/v/Rhino-stubs.svg)](https://pypi.org/project/Rhino-stubs)
+## Usage
+```
+Usage:
+    pystubsbuilder (-h | --help)
+    pystubsbuilder (-V | --version)
+    pystubsbuilder [--dest=<dest_path>] [--search=<search_path>...] [--prefix=<prefix>] [--postfix=<postfix>] [--dest-is-root] <target_dll>...
 
-Python stubs for .NET assemblies that ship with Rhino. Specifically
-- RhinoCommon (https://pypi.org/project/Rhino-stubs/)
-- Eto (https://pypi.org/project/Eto-stubs/)
-- Grasshopper (https://pypi.org/project/Grasshopper-stubs/)
-- GH_IO (https://pypi.org/project/GH-IO-stubs/)
-- GH_Util (https://pypi.org/project/GH-Util-stubs/)
+Options:
+    -h --help                   Show this help
+    -V --version                Show version
+    --dest=<dest_path>          Path to save the subs to
+    --search=<search_path>      Path to search for referenced assemblies. Can be repeated multiple times for multiple paths
+    --prefix=<prefix>           Root namespace directory prefix
+    --postfix=<postfix>         Root namespace directory postfix [default: -stubs]
+    --dest-is-root              Use destination path for root namespace
+```
 
-See the following posts for details about the purpose of these packages:
+## Example
+ ` .\PyStubbler.exe --dest=".\path\to\output" --search=".\path\to\referenced\assemblies\" --postfix="-stubs" ".\path\to\target.dll"`
+ 
+ 
+## Visual Studio postbuild
 
-- [Autocomplete while editing python scripts outside of Rhino](https://discourse.mcneel.com/t/autocomplete-while-editing-python-scripts-outside-of-rhino/79329) on Rhino forums
-- [Autocomplete and Type Hints with Python Scripts for Rhino/Grasshopper](
-https://stevebaer.wordpress.com/2019/02/25/autocomplete-and-type-hints-with-python-scripts-for-rhino-grasshopper) on Steve Baer's Notes
+Place the build with all the files in the solution folder, and add this to the Post-build event command line box in the project properties
 
-
-## Using with [VSCode](https://code.visualstudio.com/)
-
-- Open your project in VSCode
-- Open a terminal
-- Depending on the python package manager that you are using, install the stub python packages into your project environment. Examples below use the `pipenv` package manager.
-
-    `$ pipenv install Rhino-stubs `
-
-    `$ pipenv install Grasshopper-stubs `
-
-- Now you can import `Rhino` or `Grasshopper` and use the autocomplete
-
-    ![](static/rhino-stub-vscode.gif)
-
-    ![](static/gh-stub-vscode.gif)
+`"$(SolutionDir)PyStubbler\PyStubbler.exe" --dest="$(TargetDir)" --search="$(TargetDir)" --postfix="-stubs" "$(TargetPath)"`

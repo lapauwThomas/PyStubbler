@@ -13,23 +13,25 @@ namespace PyStubbler
     {
         private const string UsagePatterns = @"
 Usage:
-    pystubsbuilder (-h | --help)
-    pystubsbuilder (-V | --version)
-    pystubsbuilder [--dest=<dest_path>] [--search=<search_path>...] [--prefix=<prefix>] [--postfix=<postfix>] [--dest-is-root] <target_dll>...
+    PyStubbler (-h | --help)
+    PyStubbler (-V | --version)
+    PyStubbler [--dest=<dest_path>] [--search=<search_path>...] [--prefix=<prefix>] [--postfix=<postfix>] [--dest-is-root] <target_dll>...
 
 Options:
     -h --help                   Show this help
     -V --version                Show version
     --dest=<dest_path>          Path to save the subs to
-    --search=<search_path>      Path to search for referenced assemblies
+    --search=<search_path>      Path to search for referenced assemblies. Can be repeated multiple times for multiple paths
     --prefix=<prefix>           Root namespace directory prefix
-    --postfix=<postfix>         Root namespace directory postfix
+    --postfix=<postfix>         Root namespace directory postfix [default: -stubs]
     --dest-is-root              Use destination path for root namespace
 ";
 
         static void Main(string[] args)
         {
-            var arguments = new Docopt().Apply(UsagePatterns, args, version: Assembly.GetExecutingAssembly().GetName().Version, exit: true);
+        
+
+            var arguments = new Docopt().Apply(UsagePatterns, args, version: Assembly.GetExecutingAssembly().GetName().Version, exit: false);
 
             if (arguments.ContainsKey("<target_dll>"))
                 foreach (ValueObject targetDll in (ArrayList)arguments["<target_dll>"].Value)
@@ -86,6 +88,7 @@ Options:
                         Console.WriteLine($"error: can not find {assmPath}");
                     }
                 }
+
         }
     }
 }

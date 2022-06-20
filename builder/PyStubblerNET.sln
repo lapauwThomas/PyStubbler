@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.271
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32510.428
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PyStubbler", "PyStubbler\PyStubbler.csproj", "{31381EC9-A531-4802-B6A5-3341D85890CE}"
 EndProject
@@ -16,6 +16,7 @@ Global
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{31381EC9-A531-4802-B6A5-3341D85890CE}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{31381EC9-A531-4802-B6A5-3341D85890CE}.Debug|Any CPU.Build.0 = Debug|x64
 		{31381EC9-A531-4802-B6A5-3341D85890CE}.Debug|x64.ActiveCfg = Debug|x64
 		{31381EC9-A531-4802-B6A5-3341D85890CE}.Debug|x64.Build.0 = Debug|x64
 		{31381EC9-A531-4802-B6A5-3341D85890CE}.Release|Any CPU.ActiveCfg = Release|x64

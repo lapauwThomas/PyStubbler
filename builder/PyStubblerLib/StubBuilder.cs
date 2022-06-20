@@ -38,7 +38,7 @@ namespace PyStubblerLib
             else
             {
                 var extendedRootNS = cfgs.Prefix + rootNamespace + cfgs.Postfix;
-                if (destPath is null || !Directory.Exists(destPath))
+                if (destPath is null)
                     stubsDirectory = Directory.CreateDirectory(extendedRootNS);
                 else
                     stubsDirectory = Directory.CreateDirectory(Path.Combine(destPath, extendedRootNS));
