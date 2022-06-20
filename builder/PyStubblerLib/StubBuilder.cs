@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Reflection;
 using System.Collections.Generic;
 using System.IO;
+using PyStubblerAnnotations;
 
 namespace PyStubblerLib
 {
@@ -62,13 +64,13 @@ namespace PyStubblerLib
             // update the setup.py version with the matching version of the assembly
             var parentDirectory = stubsDirectory.Parent;
             string setup_py = Path.Combine(parentDirectory.FullName, "setup.py");
-            if( File.Exists(setup_py))
+            if (File.Exists(setup_py))
             {
                 string[] contents = File.ReadAllLines(setup_py);
-                for( int i=0; i<contents.Length; i++ )
+                for (int i = 0; i < contents.Length; i++)
                 {
                     string line = contents[i].Trim();
-                    if( line.StartsWith("version=") )
+                    if (line.StartsWith("version="))
                     {
                         line = contents[i].Substring(0, contents[i].IndexOf("="));
                         var version = assemblyToStub.GetName().Version;
@@ -116,9 +118,9 @@ namespace PyStubblerLib
         private static string[] GetChildNamespaces(string parentNamespace, string[] allNamespaces)
         {
             List<string> childNamespaces = new List<string>();
-            foreach(var ns in allNamespaces)
+            foreach (var ns in allNamespaces)
             {
-                if( ns.StartsWith(parentNamespace + "."))
+                if (ns.StartsWith(parentNamespace + "."))
                 {
                     string childNamespace = ns.Substring(parentNamespace.Length + 1);
                     if (!childNamespace.Contains("."))
@@ -148,10 +150,10 @@ namespace PyStubblerLib
             var sb = new System.Text.StringBuilder();
 
             string[] allChildNamespaces = GetChildNamespaces(stubTypes[0].Namespace, allNamespaces);
-            if( allChildNamespaces.Length>0 )
+            if (allChildNamespaces.Length > 0)
             {
                 sb.Append("__all__ = [");
-                for(int i=0; i<allChildNamespaces.Length; i++)
+                for (int i = 0; i < allChildNamespaces.Length; i++)
                 {
                     if (i > 0)
                         sb.Append(",");
@@ -163,8 +165,11 @@ namespace PyStubblerLib
 
             foreach (var stubType in stubTypes)
             {
-                var obsolete = stubType.GetCustomAttribute(typeof(System.ObsoleteAttribute));
-                if (obsolete != null)
+
+                if (stubType.GetCustomAttribute(typeof(System.ObsoleteAttribute)) != null)
+                    continue;
+
+                if (stubType.GetCustomAttribute(typeof(PyStubblerAnnotations.HideStub)) != null)
                     continue;
 
                 sb.AppendLine();
@@ -197,14 +202,58 @@ namespace PyStubblerLib
                 else
                     sb.AppendLine($"class {stubType.Name}:");
 
+
+                // Static fields
+                FieldInfo[] staticFields = stubType.GetFields();
+                // sort for consistent output
+                sb.AppendLine("\n    #Class variables (static)");
+                foreach (var field in staticFields)
+                {
+                    if (!field.IsStatic)
+                        continue;
+                    if (field.GetCustomAttribute(typeof(System.ObsoleteAttribute)) != null)
+                        continue;
+                    if (field.GetCustomAttribute(typeof(PyStubblerAnnotations.HideStub)) != null)
+                        continue;
+
+                    sb.AppendLine($"    {field.Name}: {ToPythonType(field.FieldType)}");
+
+                }
+                sb.AppendLine("");
+
+                //  fields
+                FieldInfo[] instanceFields = stubType.GetFields();
+                // sort for consistent output
+                sb.AppendLine("    #Instance variables (non-static)");
+                foreach (var field in instanceFields)
+                {
+                    if (field.IsStatic)
+                        continue;
+                    if (field.GetCustomAttribute(typeof(System.ObsoleteAttribute)) != null)
+                        continue;
+                    if (field.GetCustomAttribute(typeof(PyStubblerAnnotations.HideStub)) != null)
+                        continue;
+
+                    sb.AppendLine($"    {field.Name}: {ToPythonType(field.FieldType)}");
+
+                }
+                sb.AppendLine("");
+
                 string classStartString = sb.ToString();
 
+
+
+                sb.AppendLine($"    #Constructors");
                 // constructors
                 ConstructorInfo[] constructors = stubType.GetConstructors();
                 // sort for consistent output
                 Array.Sort(constructors, MethodCompare);
                 foreach (var constructor in constructors)
                 {
+
+                    if (constructor.GetCustomAttribute(typeof(PyStubblerAnnotations.HideStub)) != null)
+                        continue;
+
                     if (constructors.Length > 1)
                         sb.AppendLine("    @overload");
                     sb.Append("    def __init__(self");
@@ -217,8 +266,12 @@ namespace PyStubblerLib
                         if (i < (parameters.Length - 1))
                             sb.Append(", ");
                     }
-                    sb.AppendLine("): ...");
+                    sb.AppendLine("): ...\n");
+
                 }
+
+
+
 
                 // methods
                 MethodInfo[] methods = stubType.GetMethods();
@@ -228,6 +281,8 @@ namespace PyStubblerLib
                 foreach (var method in methods)
                 {
                     if (method.GetCustomAttribute(typeof(System.ObsoleteAttribute)) != null)
+                        continue;
+                    if (method.GetCustomAttribute(typeof(PyStubblerAnnotations.HideStub)) != null)
                         continue;
 
                     int count;
@@ -242,9 +297,12 @@ namespace PyStubblerLib
                 {
                     if (method.GetCustomAttribute(typeof(System.ObsoleteAttribute)) != null)
                         continue;
+                    if (method.GetCustomAttribute(typeof(PyStubblerAnnotations.HideStub)) != null)
+                        continue;
 
                     if (method.DeclaringType != stubType)
                         continue;
+
                     var parameters = method.GetParameters();
                     int outParamCount = 0;
                     int refParamCount = 0;
@@ -272,6 +330,9 @@ namespace PyStubblerLib
                     {
                         if (methodNames[method.Name] > 1)
                             sb.AppendLine("    @overload");
+                        if (method.IsStatic)
+                            sb.AppendLine("    @staticmethod");
+
                         sb.Append($"    def {method.Name}(");
                     }
 
@@ -326,7 +387,7 @@ namespace PyStubblerLib
                             sb.Append("]");
                         }
                     }
-                    sb.AppendLine(": ...");
+                    sb.AppendLine(": ...\n");
                 }
                 // If no strings appended, class is empty. add "pass"
                 if (sb.ToString().Length == classStartString.Length)
@@ -376,13 +437,32 @@ namespace PyStubblerLib
 
         private static string ToPythonType(Type t)
         {
-            if (t.IsGenericType && t.Name.StartsWith("IEnumerable"))
+            if (t == typeof(string))
+                return "str"; // added here for lazy evaluation
+                              //    if (t is System.String) return "str"; // added here for lazy evaluation
+
+            if (t.IsArray)
             {
-                string rc = ToPythonType(t.GenericTypeArguments[0]);
+                var subtype = t.GetElementType();
+                return $"List[{ToPythonType(subtype)}]";
+            }
+            if (typeof(IList).IsAssignableFrom(t))
+            {
+                var subtype = t.GenericTypeArguments[0];
+                if (subtype == null)
+                {
+                    subtype = t.GetElementType();
+                }
+                return $"List[{ToPythonType(subtype)}]";
+            }
+            if (typeof(IEnumerable).IsAssignableFrom(t))
+            {
+                string rc = ToPythonType(t.GetElementType());
                 return $"Iterable[{rc}]";
             }
             // TODO: Figure out the right way to get at IEnumerable<T>
-            if (t.FullName != null && t.FullName.StartsWith("System.Collections.Generic.IEnumerable`1[["))
+            // if (t.FullName != null && t.FullName.StartsWith("System.Collections.Generic.IEnumerable`1[["))
+            if (typeof(IEnumerable).IsAssignableFrom(t))
             {
                 string enumerableType = t.FullName.Substring("System.Collections.Generic.IEnumerable`1[[".Length);
                 enumerableType = enumerableType.Substring(0, enumerableType.IndexOf(','));
@@ -390,14 +470,7 @@ namespace PyStubblerLib
                 string rc = ToPythonType(pieces[pieces.Length - 1]);
                 return $"Iterable[{rc}]";
             }
-            if (t.FullName != null && t.FullName.StartsWith("System.Collections.Generic.IList`1[["))
-            {
-                string enumerableType = t.FullName.Substring("System.Collections.Generic.IList`1[[".Length);
-                enumerableType = enumerableType.Substring(0, enumerableType.IndexOf(','));
-                var pieces = enumerableType.Split('.');
-                string rc = ToPythonType(pieces[pieces.Length - 1]);
-                return $"List[{rc}]";
-            }
+
             return ToPythonType(t.Name);
         }
 

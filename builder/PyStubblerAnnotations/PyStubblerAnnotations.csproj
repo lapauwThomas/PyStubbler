@@ -4,14 +4,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{CFF04832-FC00-4589-AFD1-3E077A94C9B7}</ProjectGuid>
+    <ProjectGuid>{F4D045CA-EA7F-4256-8C6F-6C1A39805A4A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>PyStubblerLib</RootNamespace>
-    <AssemblyName>PyStubblerLib</AssemblyName>
+    <RootNamespace>PyStubblerAnnotations</RootNamespace>
+    <AssemblyName>PyStubblerAnnotations</AssemblyName>
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -41,15 +42,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BuildConfig.cs" />
-    <Compile Include="StubBuilder.cs" />
+    <Compile Include="HideStub.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\PyStubblerAnnotations\PyStubblerAnnotations.csproj">
-      <Project>{f4d045ca-ea7f-4256-8c6f-6c1a39805a4a}</Project>
-      <Name>PyStubblerAnnotations</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
