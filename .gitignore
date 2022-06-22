@@ -109,3 +109,4 @@ venv.bak/
 /builder/packages
 /builder/PyStubbler/PyStubbler.csproj.user
 /builder/debug_build
+/PyStubblerTestAssembly-stubs

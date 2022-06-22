@@ -1,6 +1,6 @@
 # Build python stubs for .NET assemblies
 
-Forked from [McNeel python stubs](https://github.com/mcneel/pythonstubs). So kudos to him for doing the initial work. 
+Forked from [McNeel python stubs](https://github.com/mcneel/pythonstubs). So kudos to him for doing the initial work. Major changes and refactoring has been done see the section below. 
 
 The motivation behind this is to be able to generate the python stubs that can be used in combination with Pythonnet.
 
@@ -10,16 +10,18 @@ The motivation behind this is to be able to generate the python stubs that can b
 Usage:
     PyStubbler (-h | --help)
     PyStubbler (-V | --version)
-    PyStubbler [--dest=<dest_path>] [--search=<search_path>...] [--prefix=<prefix>] [--postfix=<postfix>] [--dest-is-root] <target_dll>...
+    PyStubbler [--dest=<dest_path>] [--search=<search_path>...] [--prefix=<prefix>] [--postfix=<postfix>] [--dest-is-root] [--copylog] [--loglevel=<lv>] <target_dll>...
 
 Options:
     -h --help                   Show this help
     -V --version                Show version
-    --dest=<dest_path>          Path to save the subs to
+    --loglevel=<lv>             Log level (TRACE, DEBUG, INFO, WARN, ERROR, FATAL) [Default: INFO]                  
+    --dest=<dest_path>          Output directory
     --search=<search_path>      Path to search for referenced assemblies. Can be repeated multiple times for multiple paths
     --prefix=<prefix>           Root namespace directory prefix
     --postfix=<postfix>         Root namespace directory postfix [default: -stubs]
     --dest-is-root              Use destination path for root namespace
+    --copylog                   Copy the logfile to the output directory
 ```
 
 ## Example
