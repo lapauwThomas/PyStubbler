@@ -110,3 +110,4 @@ venv.bak/
 /builder/PyStubbler/PyStubbler.csproj.user
 /builder/debug_build
 /PyStubblerTestAssembly-stubs
+*release.zip
