@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PyStubblerLib", "PyStubbler
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PyStubblerAnnotations", "PyStubblerAnnotations\PyStubblerAnnotations.csproj", "{F4D045CA-EA7F-4256-8C6F-6C1A39805A4A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PyStubblerTestAssembly", "PyStubblerTestAssembly\PyStubblerTestAssembly.csproj", "{500564C0-C5C2-4412-9986-498B4461DC46}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -22,6 +24,7 @@ Global
 		{31381EC9-A531-4802-B6A5-3341D85890CE}.Debug|x64.ActiveCfg = Debug|x64
 		{31381EC9-A531-4802-B6A5-3341D85890CE}.Debug|x64.Build.0 = Debug|x64
 		{31381EC9-A531-4802-B6A5-3341D85890CE}.Release|Any CPU.ActiveCfg = Release|x64
+		{31381EC9-A531-4802-B6A5-3341D85890CE}.Release|Any CPU.Build.0 = Release|x64
 		{31381EC9-A531-4802-B6A5-3341D85890CE}.Release|x64.ActiveCfg = Release|x64
 		{31381EC9-A531-4802-B6A5-3341D85890CE}.Release|x64.Build.0 = Release|x64
 		{CFF04832-FC00-4589-AFD1-3E077A94C9B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -40,6 +43,14 @@ Global
 		{F4D045CA-EA7F-4256-8C6F-6C1A39805A4A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F4D045CA-EA7F-4256-8C6F-6C1A39805A4A}.Release|x64.ActiveCfg = Release|Any CPU
 		{F4D045CA-EA7F-4256-8C6F-6C1A39805A4A}.Release|x64.Build.0 = Release|Any CPU
+		{500564C0-C5C2-4412-9986-498B4461DC46}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{500564C0-C5C2-4412-9986-498B4461DC46}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{500564C0-C5C2-4412-9986-498B4461DC46}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{500564C0-C5C2-4412-9986-498B4461DC46}.Debug|x64.Build.0 = Debug|Any CPU
+		{500564C0-C5C2-4412-9986-498B4461DC46}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{500564C0-C5C2-4412-9986-498B4461DC46}.Release|Any CPU.Build.0 = Release|Any CPU
+		{500564C0-C5C2-4412-9986-498B4461DC46}.Release|x64.ActiveCfg = Release|Any CPU
+		{500564C0-C5C2-4412-9986-498B4461DC46}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
