@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using JetBrains.Annotations;
+using PyStubblerTestAssembly.namespace2;
 
 namespace PyStubblerTestAssembly
 {
@@ -60,6 +61,8 @@ namespace PyStubblerTestAssembly
 
         public readonly List<int> ReadonlyIntList;
 
+
+
         public MyTestClass()
         {
 
@@ -80,6 +83,11 @@ namespace PyStubblerTestAssembly
         public ANestedPublicClass MethodUsingNestedPublicClass(ANestedPublicClass classinst)
         {
             return classinst;
+        }
+
+        public MyOtherClass MyOtherClassCreator(ANestedPublicClass classinst)
+        {
+            return new MyOtherClass();
         }
 
         public List<List<string>> IMakeAListOfListsofStrings()

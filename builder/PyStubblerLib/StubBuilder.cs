@@ -16,8 +16,8 @@ namespace PyStubblerLib
 
         public static string logfile = PSLogManager.Logfilename;
 
-  
-      
+
+
         private static List<string> SearchPaths { get; set; } = new List<string>();
         public Type[] TypesInAssemblyToStub;
 
@@ -214,15 +214,21 @@ namespace PyStubblerLib
                 }
 
                 sb.AppendLine("from typing import Tuple, Set, Iterable, List");
-                sb.AppendLine("from typing import Dict");
+                sb.AppendLine("from typing import Dict, Callable, Any");
 
 
+                var tempSB = new StringBuilder();
+                PythonTypeConversions.KnownTypes.Clear();
 
 
                 foreach (var stubType in TypesToStub)
                 {
-                    WriteStubForType(sb, stubType, ns);
+                    WriteStubForType(tempSB, stubType, ns);
                 }
+
+                sb.AppendLine(CreateImports(TypesToStub[0].Assembly.GetName().Name, CurrentNamespace));
+
+                sb.AppendLine(tempSB.ToString());
 
                 File.WriteAllText(path, sb.ToString());
                 logger.Info($"Finished writing stubs for {CurrentNamespace} to {path}");
@@ -232,6 +238,42 @@ namespace PyStubblerLib
                 errorsList.Add($"Error creating stubs for {CurrentNamespace}");
                 logger.Error(ex, $"Exception while creating stubs for {CurrentNamespace}");
             }
+        }
+        private static string  CreateImports (string assemblyName, string currentNamespace)
+        {
+            var typeForClassBuilder = new StringBuilder();
+            Dictionary<string, List<Type>> imports = new Dictionary<string, List<Type>>();
+            foreach (Type t in PythonTypeConversions.KnownTypes)
+            {
+                if (!t.Namespace.Equals(currentNamespace))
+                {
+                    if (!imports.ContainsKey(t.Namespace))
+                    {
+                        imports.Add(t.Namespace, new List<Type>());
+                    }
+                    if (!imports[t.Namespace].Contains(t))
+                    {
+                        imports[t.Namespace].Add(t);
+                    }
+                }
+            }
+
+
+            foreach (string ns in imports.Keys)
+            {
+                string nsName = ns.Replace(assemblyName+".", "");
+                typeForClassBuilder.Append($"from {nsName} import");
+                foreach (Type type in imports[ns])
+                {
+                    typeForClassBuilder.Append($" {type.Name},");
+                }
+                typeForClassBuilder.Remove(typeForClassBuilder.Length - 1, 1); //remove trailing comma
+                typeForClassBuilder.AppendLine();
+            }
+
+
+
+            return typeForClassBuilder.ToString();
         }
 
         private void WriteStubForType(StringBuilder sb, Type stubType, string[] ns)
@@ -328,7 +370,15 @@ namespace PyStubblerLib
 
             foreach (var method in methods)
             {
-                WriteMethod(sb, stubType, method, methodNames);
+                try
+                {
+                    WriteMethod(sb, stubType, method, methodNames);
+                }
+                catch (Exception ex)
+                {
+                    errorsList.Add($"\tError creating stubs for method {method.Name}");
+                    throw;
+                }
             }
         }
 
@@ -598,15 +648,23 @@ namespace PyStubblerLib
             sb.AppendLine("#Instance variables (non-static)");
             foreach (var field in instanceFields)
             {
-                if (field.IsStatic)
-                    continue;
-                if (field.GetCustomAttribute(typeof(System.ObsoleteAttribute)) != null)
-                    continue;
-                if (field.GetCustomAttribute(typeof(PyStubblerAnnotations.HideStub)) != null)
-                    continue;
+                try
+                {
+                    if (field.IsStatic)
+                        continue;
+                    if (field.GetCustomAttribute(typeof(System.ObsoleteAttribute)) != null)
+                        continue;
+                    if (field.GetCustomAttribute(typeof(PyStubblerAnnotations.HideStub)) != null)
+                        continue;
 
-                sb.AppendLine($"    {field.Name}: {PythonTypeConversions.ToPythonType(field.FieldType)}");
-                logger.Trace($"Writing field : {field.Name}");
+                    sb.AppendLine($"    {field.Name}: {PythonTypeConversions.ToPythonType(field.FieldType)}");
+                    logger.Trace($"Writing field : {field.Name}");
+                }
+                catch (Exception ex)
+                {
+                    errorsList.Add($"\tError creating stubs for field {field.Name}");
+                    throw;
+                }
             }
 
             sb.AppendLine("");
@@ -622,15 +680,23 @@ namespace PyStubblerLib
             sb.AppendLine("#Class variables (static)");
             foreach (var field in staticFields)
             {
-                if (!field.IsStatic)
-                    continue;
-                if (field.GetCustomAttribute(typeof(System.ObsoleteAttribute)) != null)
-                    continue;
-                if (field.GetCustomAttribute(typeof(PyStubblerAnnotations.HideStub)) != null)
-                    continue;
+                try
+                {
+                    if (!field.IsStatic)
+                        continue;
+                    if (field.GetCustomAttribute(typeof(System.ObsoleteAttribute)) != null)
+                        continue;
+                    if (field.GetCustomAttribute(typeof(PyStubblerAnnotations.HideStub)) != null)
+                        continue;
 
-                sb.AppendLine($"    {field.Name}: {PythonTypeConversions.ToPythonType(field.FieldType)}");
-                logger.Trace($"Writing static field : {field.Name}");
+                    sb.AppendLine($"    {field.Name}: {PythonTypeConversions.ToPythonType(field.FieldType)}");
+                    logger.Trace($"Writing static field : {field.Name}");
+                }
+                catch (Exception ex)
+                {
+                    errorsList.Add($"\tError creating stubs for field {field.Name}");
+                    throw;
+                }
             }
 
             sb.AppendLine("");
@@ -646,16 +712,23 @@ namespace PyStubblerLib
             sb.AppendLine("#Properties");
             foreach (var prop in properties)
             {
+                try
+                {
+                    if (prop.GetCustomAttribute(typeof(System.ObsoleteAttribute)) != null)
+                        continue;
+                    if (prop.GetCustomAttribute(typeof(PyStubblerAnnotations.HideStub)) != null)
+                        continue;
 
-                if (prop.GetCustomAttribute(typeof(System.ObsoleteAttribute)) != null)
-                    continue;
-                if (prop.GetCustomAttribute(typeof(PyStubblerAnnotations.HideStub)) != null)
-                    continue;
+                    logger.Trace($"Writing acessors for instance property: {prop.Name}");
 
-                logger.Trace($"Writing acessors for instance property: {prop.Name}");
-
-                WritePropertyAccessor(sb, stubType, prop.GetMethod);
-                WritePropertyAccessor(sb, stubType, prop.SetMethod);
+                    WritePropertyAccessor(sb, stubType, prop.GetMethod);
+                    WritePropertyAccessor(sb, stubType, prop.SetMethod);
+                }
+                catch (Exception ex)
+                {
+                    errorsList.Add($"\tError creating stubs for property {prop.Name}");
+                    throw;
+                }
             }
 
             sb.AppendLine("");
@@ -671,13 +744,21 @@ namespace PyStubblerLib
             sb.AppendLine("#Static Properties");
             foreach (var prop in properties)
             {
-                if (prop.GetCustomAttribute(typeof(System.ObsoleteAttribute)) != null)
-                    continue;
-                if (prop.GetCustomAttribute(typeof(PyStubblerAnnotations.HideStub)) != null)
-                    continue;
-                logger.Trace($"Writing acessors for static property: {prop.Name}");
-                WritePropertyAccessor(sb, stubType, prop.GetMethod);
-                WritePropertyAccessor(sb, stubType, prop.SetMethod);
+                try
+                {
+                    if (prop.GetCustomAttribute(typeof(System.ObsoleteAttribute)) != null)
+                        continue;
+                    if (prop.GetCustomAttribute(typeof(PyStubblerAnnotations.HideStub)) != null)
+                        continue;
+                    logger.Trace($"Writing acessors for static property: {prop.Name}");
+                    WritePropertyAccessor(sb, stubType, prop.GetMethod);
+                    WritePropertyAccessor(sb, stubType, prop.SetMethod);
+                }
+                catch (Exception ex)
+                {
+                    errorsList.Add($"\tError creating stubs for static property {prop.Name}");
+                    throw;
+                }
             }
 
             sb.AppendLine("");
@@ -692,17 +773,35 @@ namespace PyStubblerLib
             sb.AppendLine("#EventHandlers");
             foreach (var evt in eventHandlers)
             {
-                if (evt.GetCustomAttribute(typeof(System.ObsoleteAttribute)) != null)
-                    continue;
-                if (evt.GetCustomAttribute(typeof(PyStubblerAnnotations.HideStub)) != null)
-                    continue;
+                try
+                {
+                    if (evt.GetCustomAttribute(typeof(System.ObsoleteAttribute)) != null)
+                        continue;
+                    if (evt.GetCustomAttribute(typeof(PyStubblerAnnotations.HideStub)) != null)
+                        continue;
+                    if (evt.EventHandlerType.GenericTypeArguments?.Length > 0)
+                    {
+                        sb.AppendLine(
+                            $"    {evt.Name}: Callable[[Any, {PythonTypeConversions.ToPythonType(evt.EventHandlerType.GenericTypeArguments?[0])}], None]    # void function(object sender, {evt.EventHandlerType.GenericTypeArguments?[0]} args) ");
+                    }
+                    else
+                    {
+                        sb.AppendLine(
+                            $"    {evt.Name}: Callable[[Any, Any], None]    # void function(object sender, EventArgs args) ");
+                    }
 
-                sb.AppendLine($"    {evt.Name}: Callable[[Any, {PythonTypeConversions.ToPythonType(evt.EventHandlerType.GenericTypeArguments?[0])}], None])    # void function(object sender, {evt.EventHandlerType.GenericTypeArguments?[0]} args) ");
+             
 
-                logger.Trace($"Writing eventhandler : {evt.Name}");
-                //marked as stubbed
-                stubbedMethods.Add(evt.AddMethod);
-                stubbedMethods.Add(evt.RemoveMethod);
+                    logger.Trace($"Writing eventhandler : {evt.Name}");
+                    //marked as stubbed
+                    stubbedMethods.Add(evt.AddMethod);
+                    stubbedMethods.Add(evt.RemoveMethod);
+                }
+                catch (Exception ex)
+                {
+                    errorsList.Add($"\tError creating stubs for eventHandler {evt.Name}");
+                    throw;
+                }
             }
 
             sb.AppendLine("");
@@ -718,25 +817,41 @@ namespace PyStubblerLib
             sb.AppendLine("#Static EventHandlers");
             foreach (var evt in eventHandlers)
             {
-                if (evt.GetCustomAttribute(typeof(System.ObsoleteAttribute)) != null)
-                    continue;
-                if (evt.GetCustomAttribute(typeof(PyStubblerAnnotations.HideStub)) != null)
-                    continue;
-                sb.AppendLine($"    {evt.Name}: Callable[[Any, {PythonTypeConversions.ToPythonType(evt.EventHandlerType.GenericTypeArguments?[0])}], None])    # void function(object sender, {evt.EventHandlerType.GenericTypeArguments?[0]} args) ");
+                try
+                {
+                    if (evt.GetCustomAttribute(typeof(System.ObsoleteAttribute)) != null)
+                        continue;
+                    if (evt.GetCustomAttribute(typeof(PyStubblerAnnotations.HideStub)) != null)
+                        continue;
 
-                logger.Trace($"Writing static eventhandler : {evt.Name}");
-                //marked as stubbed
-                stubbedMethods.Add(evt.AddMethod);
-                stubbedMethods.Add(evt.RemoveMethod);
+                    if (evt.EventHandlerType.GenericTypeArguments?.Length > 0)
+                    {
+                        sb.AppendLine(
+                            $"    {evt.Name}: Callable[[Any, {PythonTypeConversions.ToPythonType(evt.EventHandlerType.GenericTypeArguments?[0])}], None])    # void function(object sender, {evt.EventHandlerType.GenericTypeArguments?[0]} args) ");
+                    }
+                    else
+                    {
+                        sb.AppendLine(
+                            $"    {evt.Name}: Callable[[Any, Any], None])    # void function(object sender, EventArgs args) ");
+                    }
 
+                    logger.Trace($"Writing static eventhandler : {evt.Name}");
+                    //marked as stubbed
+                    stubbedMethods.Add(evt.AddMethod);
+                    stubbedMethods.Add(evt.RemoveMethod);
+                }
+                catch (Exception ex)
+                {
+                    errorsList.Add($"\tError creating stubs for eventHandler {evt.Name}");
+                    throw;
+                }
             }
 
             sb.AppendLine("");
         }
 
 
-
-
+   
 
         static int MethodCompare(MethodBase a, MethodBase b)
         {
@@ -751,12 +866,13 @@ namespace PyStubblerLib
 
         static void WriteStubHeader(StringBuilder sb, string namespaceName, string assemblyName)
         {
-            sb.AppendLine("```");
+            sb.AppendLine(@"'''");
             sb.AppendLine($"Stubs generated by PyStubbler version [{typeof(StubBuilder).Assembly.GetName().Version}]");
             sb.AppendLine($"Date: {DateTime.Now.ToString("f", DateTimeFormatInfo.InvariantInfo)}");
             sb.AppendLine($"\nNamespace: {namespaceName}");
             sb.AppendLine($"\nIn Assembly: {assemblyName}");
-            sb.AppendLine("\n```\n");
+            sb.AppendLine("\n'''\n");
         }
+
     }
 }

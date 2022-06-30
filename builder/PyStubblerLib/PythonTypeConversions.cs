@@ -9,6 +9,10 @@ namespace PyStubblerLib
     public static class PythonTypeConversions
     {
 
+    
+
+        public static List<Type> KnownTypes = new List<Type>(); //list of 
+
         public static Type[] AssemblyTypes;
 
         public static string SafePythonName(string s)
@@ -53,7 +57,11 @@ namespace PyStubblerLib
             {
 
                 if (AssemblyTypes.Contains(t))
+                {
+                    if(!KnownTypes.Contains(t))KnownTypes.Add(t);
                     return t.Name;
+                }
+
                 if (t == typeof(string))
                     return "str"; // added here for lazy evaluation. since strings implement IEnumerable<char>
                 if (t == typeof(string))
