@@ -77,8 +77,9 @@ Options:
                         {
                             Prefix = arguments["--prefix"] != null ? (string)arguments["--prefix"].Value : string.Empty,
                             Postfix = arguments["--postfix"] != null ? (string)arguments["--postfix"].Value : string.Empty,
-                            DestPathIsRoot = arguments["--dest-is-root"] != null ? (bool)arguments["--dest-is-root"].Value : false,
-                            LogLevel = loglevel
+                            DestPathIsRoot = arguments["--dest-is-root"] != null && (bool)arguments["--dest-is-root"].Value,
+                            LogLevel = loglevel,
+                            RelativeImports = true
                         };
 
                         Console.WriteLine($"Building stubs for {assmPath}");
@@ -89,7 +90,7 @@ Options:
                                 assmPath,
                                 destPath: destPath,
                                 searchPaths: searchPaths,
-                                cfgs: genCfg
+                                config: genCfg
                             );
 
 
