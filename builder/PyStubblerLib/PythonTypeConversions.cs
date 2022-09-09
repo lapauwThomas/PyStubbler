@@ -48,6 +48,8 @@ namespace PyStubblerLib
                 return "bool";
             if (rc.Equals("Int32"))
                 return "int";
+            if (rc.Equals("Object"))
+                return "object";
             return rc;
         }
 

@@ -1,6 +1,6 @@
 # Build python stubs for .NET assemblies
 
-Forked from [McNeel python stubs](https://github.com/mcneel/pythonstubs). So kudos to him for doing the initial work. Major changes and refactoring has been done see the section below. 
+Forked from [McNeel python stubs](https://github.com/mcneel/pythonstubs). So kudos to them for doing the initial work. Major changes and refactoring has been done see the section below. 
 
 The motivation behind this is to be able to generate the python stubs that can be used in combination with Pythonnet.
 
@@ -45,6 +45,8 @@ Place the all the files from the release folder in a subfolder called _PyStubble
 - Properties are marked separately
 - Added eventhandler support. Marked as _Any_ with comment for type.
 - Added logging with NLOG to the library. 
+- Added imports for stubs so that assembly types are referenced in the stubs.
+- Made the imports relative.
 
 ## Future improvements (when I need them or get around to it)
 - Refactor the code for better maintainability
@@ -56,3 +58,4 @@ Place the all the files from the release folder in a subfolder called _PyStubble
 ## Known limitations
 - Spaces on paths are tricky to get right when running the tool. 
 - Figure out how to do event properties properly
+- If multiple root namespaces are present, the root stub file gets overwritten. Needs fixing.

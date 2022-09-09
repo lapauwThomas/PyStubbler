@@ -21,24 +21,27 @@ namespace PyStubblerLib
         private static List<string> SearchPaths { get; set; } = new List<string>();
         public Type[] TypesInAssemblyToStub;
 
-        //public static string BuildAssemblyStubs(string targetAssemblyPath, string destPath = null, string[] searchPaths = null, BuildConfig cfgs = null)
+        //public static string BuildAssemblyStubs(string targetAssemblyPath, string destPath = null, string[] searchPaths = null, BuildConfig currentConfig = null)
         //{
         //    var builder = new StubBuilder();
-        //    return builder.GenerateStubs(targetAssemblyPath, destPath, searchPaths, cfgs);
+        //    return builder.GenerateStubs(targetAssemblyPath, destPath, searchPaths, currentConfig);
         //}
 
         public List<string> errorsList { get; private set; } = new List<string>();
 
-        public string BuildAssemblyStubs(string targetAssemblyPath, string destPath = null, string[] searchPaths = null, BuildConfig cfgs = null)
+        private BuildConfig currentConfig;
+
+        public string BuildAssemblyStubs(string targetAssemblyPath, string destPath = null, string[] searchPaths = null, BuildConfig config = null)
         {
             // prepare configs
-            if (cfgs is null)
-                cfgs = new BuildConfig();
+            if (config is null)
+                config = new BuildConfig();
+            currentConfig = config;
 
             logger.Info($"PyStubbler version [{typeof(StubBuilder).Assembly.GetName().Version}]");
             logger.Info($"Stubbing assembly at path: {targetAssemblyPath}");
 
-            PSLogManager.SetLogLevel(cfgs.LogLevel);
+            PSLogManager.SetLogLevel(currentConfig.LogLevel);
 
             // prepare resolver
             AppDomain.CurrentDomain.AssemblyResolve -= AssemblyResolve;
@@ -65,14 +68,14 @@ namespace PyStubblerLib
 
             // prepare output directory
             DirectoryInfo outputPath;
-            if (cfgs.DestPathIsRoot && Directory.Exists(destPath))
+            if (currentConfig.DestPathIsRoot && Directory.Exists(destPath))
             {
                 outputPath = new DirectoryInfo(destPath);
 
             }
             else
             {
-                var extendedRootNs = cfgs.Prefix + rootNamespace + cfgs.Postfix;
+                var extendedRootNs = currentConfig.Prefix + rootNamespace + currentConfig.Postfix;
                 if (destPath is null)
                     outputPath = Directory.CreateDirectory(extendedRootNs);
                 else
@@ -213,8 +216,8 @@ namespace PyStubblerLib
                     sb.AppendLine("]");
                 }
 
-                sb.AppendLine("from typing import Tuple, Set, Iterable, List");
-                sb.AppendLine("from typing import Dict, Callable, Any");
+                sb.AppendLine("from typing import Tuple, Set, Iterable, List, overload, Dict, Callable, Any");
+
 
 
                 var tempSB = new StringBuilder();
@@ -239,7 +242,7 @@ namespace PyStubblerLib
                 logger.Error(ex, $"Exception while creating stubs for {CurrentNamespace}");
             }
         }
-        private static string  CreateImports (string assemblyName, string currentNamespace)
+        private string  CreateImports (string assemblyName, string currentNamespace)
         {
             var typeForClassBuilder = new StringBuilder();
             Dictionary<string, List<Type>> imports = new Dictionary<string, List<Type>>();
@@ -261,8 +264,72 @@ namespace PyStubblerLib
 
             foreach (string ns in imports.Keys)
             {
-                string nsName = ns.Replace(assemblyName+".", "");
-                typeForClassBuilder.Append($"from {nsName} import");
+                if (currentConfig.RelativeImports)
+                {
+
+
+
+                    var nsBuilder = new StringBuilder();
+
+
+                    var split_current = currentNamespace.Split('.').ToList();
+                    var split_ns = ns.Split('.').ToList();
+
+
+
+                    //There is probably some linq way in doing this....
+                    var commonNScount = Math.Min(split_current.Count, split_ns.Count); //dont modify count on correctly counting while modifying the same collection #fail
+
+                    var split_current_ForDeletion = new List<string>();
+                    var split_ns_ForDeletion = new List<string>();
+                    //remove common namespace part
+                    for (int i = 0; i < commonNScount; i++)
+                    {
+                        if (split_current[i].Equals(split_ns[i]))
+                        {
+                            split_current_ForDeletion.Add(split_current[i]);
+                            split_ns_ForDeletion.Add(split_ns[i]);
+                        }
+                    }
+
+                    foreach (string s in split_ns_ForDeletion)
+                    {
+                        split_ns.Remove(s);
+                    }
+                    foreach (string s in split_current_ForDeletion)
+                    {
+                        split_current.Remove(s);
+                    }
+
+                    int nonCommonPathCount = split_current.Count;
+                    for (int j = 0; j < nonCommonPathCount; j++)
+                    {
+                        nsBuilder.Append(".");
+                    }
+
+                    if (split_ns.Count == 0)
+                    {
+                        nsBuilder.Append(".");
+                    }
+                    else
+                    {
+                        for (int i = 0; i < split_ns.Count; i++)
+                        {
+                            nsBuilder.Append(".");
+                            nsBuilder.Append(split_ns[i]);
+                        }
+                    }
+
+                    typeForClassBuilder.Append($"from {nsBuilder.ToString()} import");
+
+                }
+                else
+                {
+
+                    string nsName = ns;
+                    typeForClassBuilder.Append($"from {nsName} import");
+                }
+
                 foreach (Type type in imports[ns])
                 {
                     typeForClassBuilder.Append($" {type.Name},");
@@ -424,10 +491,12 @@ namespace PyStubblerLib
             }
             else
             {
+                if (method.IsStatic) // Staticmethod before @overload to avoid Pycharm quirk on order
+                    sb.AppendLine("    @staticmethod"); 
+
                 if (methodNames[method.Name] > 1)
                     sb.AppendLine("    @overload");
-                if (method.IsStatic)
-                    sb.AppendLine("    @staticmethod");
+
 
                 sb.Append($"    def {method.Name}(");
             }
@@ -527,8 +596,12 @@ namespace PyStubblerLib
                 string propName = method.Name.Substring("get_".Length);
                 if (method.Name.StartsWith("get_"))
                     sb.AppendLine("    @property");
+                if (method.IsStatic)
+                    sb.AppendLine("    @staticmethod");
                 else
                 {
+                    if (method.IsStatic)
+                        sb.AppendLine("    @staticmethod");
                     sb.AppendLine($"    @{propName}.setter");
                 }
 

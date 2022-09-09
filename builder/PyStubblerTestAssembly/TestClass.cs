@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using JetBrains.Annotations;
-using PyStubblerTestAssembly.namespace2;
+using PyStubblerTestAssembly.subnamespace;
 
 namespace PyStubblerTestAssembly
 {
